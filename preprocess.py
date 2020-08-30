@@ -3,6 +3,8 @@ import csv
 import re
 from tika import parser
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+import constants
+import pandas
 
 factory = StemmerFactory()
 stemmer = factory.create_stemmer()
@@ -38,32 +40,38 @@ def clean_text(input_text: str) -> str:
     return input_text
 
 
-with open(OUTPUT_FILE, mode="w") as output_file:
-    output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+data = []
 
-    output_writer.writerow(["data", "target"])
+for root_directory, sub_dirs, file_names in os.walk(INPUT_DIR):
+    for file_name in file_names:
 
-    for root_directory, sub_dirs, file_names in os.walk(INPUT_DIR):
-        for file_name in file_names:
+        supposed_label = file_name.split("-")[0]
+        label = None
 
-            supposed_label = file_name.split("-")[0]
-            label = None
+        for allowed_label in ALLOWED_LABELS:
+            if allowed_label in supposed_label:
+                label = allowed_label
+                break
 
-            for allowed_label in ALLOWED_LABELS:
-                if allowed_label in supposed_label:
-                    label = allowed_label
-                    break
+        if not label:
+            raise ValueError
 
-            if not label:
-                raise ValueError
+        text = parser.from_file(
+            os.path.join(
+                root_directory,
+                file_name
+            )
+        )["content"]
 
-            text = parser.from_file(
-                os.path.join(
-                    root_directory,
-                    file_name
-                )
-            )["content"]
+        data.append({
+            constants.DATA_KEY: text,
+            constants.TARGET_KEY: label,
+        })
 
-            text = clean_text(text)
 
-            output_writer.writerow([text, label])
+data_frame = pandas.DataFrame(
+    data
+)
+
+data_frame[constants.DATA_KEY] = data_frame[constants.DATA_KEY].apply(clean_text)
+data_frame.to_csv(constants.PREPROCESSED_DATA_FILE)
