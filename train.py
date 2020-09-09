@@ -49,6 +49,11 @@ if __name__ == "__main__":
     fold_count = 0
 
     for train_index, test_index in kFolder.split(data):
+        print("Jurnal ke {} - {}".format(
+            test_index[0] + 1,
+            test_index[-1] + 1
+        ))
+
         data_train, target_train = data[train_index], target[train_index]
 
         tfidf_vectorizer = TfidfVectorizer(
