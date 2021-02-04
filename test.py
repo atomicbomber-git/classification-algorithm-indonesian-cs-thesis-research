@@ -1,8 +1,15 @@
 import joblib
+from numpy.lib.function_base import average
 import pandas
 from nltk.corpus import stopwords
+from pandas.core.frame import DataFrame
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+import warnings
+from pycm import ConfusionMatrix
+
+
+warnings.filterwarnings("ignore")
 
 from constants import NAIVE_BAYES_ID, SVM_ID, DATA_KEY, TARGET_KEY, N_FOLDS, ALGORITHM_LABELS
 from train import get_model_file_name, get_test_file_name, get_vectorizer_file_name
@@ -26,8 +33,21 @@ test_results_per_algorithm = {
     SVM_ID: [],
 }
 
-for fold in range(0, N_FOLDS):
+class_labels = ["komputasi", "SI", "Jaringan"]
+class_labels_map = {class_label: index for index, class_label in enumerate(class_labels)}
 
+report_text_file = open("./test_result_data/hasil_perhitungan.txt", "w")
+
+def divide(p, q, coalesce = 0):
+    if q == 0:
+        return coalesce
+    else:
+        return p / q
+
+test_results_summary = []
+
+for fold in range(0, N_FOLDS):
+    fold_iteration = fold + 1
     test_results_per_fold = []
 
     for algorithm_id in ALGORITHMS:
@@ -55,10 +75,51 @@ for fold in range(0, N_FOLDS):
             average='macro'
         )
 
+        report_confusion_matrix = ConfusionMatrix(
+            actual_vector=target_test.to_list(),
+            predict_vector=predicted_data_test
+        )
+
+        positions = report_confusion_matrix.position()
+        precisions = []
+        recalls = []
+        f1_scores = []
+        accuracies = []
+
+        report_text = ""
+
+        for classname in report_confusion_matrix.classes:
+            tp = len(positions[classname]["TP"])
+            tn = len(positions[classname]["TN"])
+            fp = len(positions[classname]["FP"])
+            fn = len(positions[classname]["FN"])
+
+            temp_recall = divide(tp, tp + fn)
+            temp_precision = divide(tp, tp + fp)
+            temp_f1_score = divide(2 * tp, 2 * tp + fp + fn)
+            temp_accuracy = divide(tp + tn, tp + tn + fp + fn)
+
+            recalls.append(temp_recall)
+            precisions.append(temp_precision)
+            f1_scores.append(temp_f1_score)
+            accuracies.append(temp_accuracy)
+
+            report_text += f'''
+Untuk pengujian pada fold ke-{fold_iteration} dari algoritma {ALGORITHM_LABELS[algorithm_id]}, kelas '{classname}' memiliki nilai true positive (tp) = {tp:.4f}, true negative (tn) = {tn:.4f}, false positive (fp) = {fp:.4f}, false negative (fn) = {fn:.4f}. Nilai recall = tp / tp + fn = {temp_recall:.4f}, nilai precision = tp / tp + fp = {temp_precision:.4f}, accuracy = tp + tn / tp + tn + fp + fn = {temp_accuracy:.4f}.
+'''.strip()
+            pass
+
+        report_text += f'''
+Rata-rata dari seluruh nilai precision adalah {precision}. \
+Rata-rata dari seluruh nilai recall adalah {recall:4f}. \
+Rata-rata dari seluruh nilai f1-score adalah {f_score:4f}. \
+Rata-rata dari seluruh nilai accuracy adalah {(average(accuracies)):4f}.
+'''.strip()
+
         accuracy = accuracy_score(target_test, predicted_data_test)
 
         test_results_per_algorithm[algorithm_id].append({
-            "Presisi": precision,
+            "Precision": precision,
             "Recall": recall,
             "F1-Score": f_score,
             "Accuracy": accuracy,
@@ -66,7 +127,15 @@ for fold in range(0, N_FOLDS):
 
         test_results_per_fold.append({
             "Algoritma": ALGORITHM_LABELS[algorithm_id],
-            "Presisi": precision,
+            "Precision": precision,
+            "Recall": recall,
+            "F1-Score": f_score,
+            "Accuracy": accuracy,
+        })
+
+        test_results_summary.append({
+            "Algoritma / Fold": "{} / {}".format(ALGORITHM_LABELS[algorithm_id], fold_iteration),
+            "Precision": precision,
             "Recall": recall,
             "F1-Score": f_score,
             "Accuracy": accuracy,
@@ -78,15 +147,18 @@ for fold in range(0, N_FOLDS):
         get_test_result_file_name(fold + 1)
     )
 
-for algorithm_id, test_result in test_results_per_algorithm.items():
-    data_frame = pandas.DataFrame(
-        test_result
-    )
+summary_df = DataFrame(test_results_summary)
+summary_df.to_excel("./test_summary.xlsx")
 
-    mean = data_frame.mean()
+# for algorithm_id, test_result in test_results_per_algorithm.items():
+#     data_frame = pandas.DataFrame(
+#         test_result
+#     )
 
-    mean.to_csv(
-        get_test_result_file_name(
-            "Rata-Rata " + ALGORITHM_LABELS[algorithm_id]
-        )
-    )
+#     mean = data_frame.mean()
+
+#     mean.to_csv(
+#         get_test_result_file_name(
+#             "Rata-Rata " + ALGORITHM_LABELS[algorithm_id]
+#         )
+#     )
