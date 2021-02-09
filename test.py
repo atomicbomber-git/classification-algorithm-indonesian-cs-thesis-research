@@ -22,7 +22,7 @@ def draw_conf_matrix(confusion_matrix: ConfusionMatrix, algo_name: str, fold_ite
 
     shape = temp_df.shape
     annotations = [
-        [f'''{classification_classes[col]}\n{classification_classes[row]}\n{temp_df[row][col]}'''
+        [f'''{classification_classes[row]}\n{classification_classes[col]}\n{temp_df[row][col]}'''
             for col in range(0, shape[0])]
         for row in range(0, shape[1])
     ]
@@ -163,11 +163,13 @@ Untuk pengujian pada fold ke-{fold_iteration} dari algoritma {ALGORITHM_LABELS[a
             pass
 
         report_text += f'''
-Rata-rata dari seluruh nilai precision adalah {precision}. \
-Rata-rata dari seluruh nilai recall adalah {recall:4f}. \
-Rata-rata dari seluruh nilai f1-score adalah {f_score:4f}. \
-Rata-rata dari seluruh nilai accuracy adalah {(average(accuracies)):4f}.
+Rata-rata dari seluruh nilai precision adalah {precision:2f}. \
+Rata-rata dari seluruh nilai recall adalah {recall:2f}. \
+Rata-rata dari seluruh nilai f1-score adalah {f_score:2f}. \
+Rata-rata dari seluruh nilai accuracy adalah {(average(accuracies)):2f}.
 '''.strip()
+
+        print(report_text, file=report_text_file, end="\n\n")
 
         accuracy = accuracy_score(target_test, predicted_data_test)
 
