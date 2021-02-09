@@ -32,7 +32,7 @@ def draw_conf_matrix(confusion_matrix: ConfusionMatrix, algo_name: str, fold_ite
         annot=DataFrame(annotations).T,
         xticklabels=x_labels,
         yticklabels=classification_classes,
-        cmap="viridis",
+        cmap="OrRd",
         linewidths=0.1,
         linecolor="black",
         fmt='',
@@ -98,6 +98,11 @@ for fold in range(0, N_FOLDS):
     test_results_per_fold = []
 
     for algorithm_id in ALGORITHMS:
+        print("Processing algorithm {}, fold {}".format(
+            ALGORITHM_LABELS[algorithm_id],
+            fold_iteration,
+        ))
+
         model = joblib.load(
             get_model_file_name(algorithm_id, fold)
         )
@@ -163,10 +168,10 @@ Untuk pengujian pada fold ke-{fold_iteration} dari algoritma {ALGORITHM_LABELS[a
             pass
 
         report_text += f'''
-Rata-rata dari seluruh nilai precision adalah {precision:2f}. \
-Rata-rata dari seluruh nilai recall adalah {recall:2f}. \
-Rata-rata dari seluruh nilai f1-score adalah {f_score:2f}. \
-Rata-rata dari seluruh nilai accuracy adalah {(average(accuracies)):2f}.
+Rata-rata dari seluruh nilai precision adalah {precision:.2f}. \
+Rata-rata dari seluruh nilai recall adalah {recall:.2f}. \
+Rata-rata dari seluruh nilai f1-score adalah {f_score:.2f}. \
+Rata-rata dari seluruh nilai accuracy adalah {(average(accuracies)):.2f}.
 '''.strip()
 
         print(report_text, file=report_text_file, end="\n\n")
