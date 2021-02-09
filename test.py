@@ -29,10 +29,10 @@ def draw_conf_matrix(confusion_matrix: ConfusionMatrix, algo_name: str, fold_ite
 
     confusion_matrix_heatmap = sns.heatmap(
         confusion_matrix_df.T,
-        annot=annotations,
+        annot=DataFrame(annotations).T,
         xticklabels=x_labels,
         yticklabels=classification_classes,
-        cmap="Greens",
+        cmap="viridis",
         linewidths=0.1,
         linecolor="black",
         fmt='',
@@ -42,6 +42,10 @@ def draw_conf_matrix(confusion_matrix: ConfusionMatrix, algo_name: str, fold_ite
     fig = confusion_matrix_heatmap.get_figure()
     fig.savefig(
         "./test_result_data/{}-fold-{}.svg".format(algo_name, fold_iter),
+        bbox_inches='tight'
+    )
+    fig.savefig(
+        "./test_result_data/{}-fold-{}.png".format(algo_name, fold_iter),
         bbox_inches='tight'
     )
     plt.clf()
@@ -154,7 +158,7 @@ for fold in range(0, N_FOLDS):
             accuracies.append(temp_accuracy)
 
             report_text += f'''
-Untuk pengujian pada fold ke-{fold_iteration} dari algoritma {ALGORITHM_LABELS[algorithm_id]}, kelas '{classname}' memiliki nilai true positive (tp) = {tp:.4f}, true negative (tn) = {tn:.4f}, false positive (fp) = {fp:.4f}, false negative (fn) = {fn:.4f}. Nilai recall = tp / tp + fn = {temp_recall:.4f}, nilai precision = tp / tp + fp = {temp_precision:.4f}, accuracy = tp + tn / tp + tn + fp + fn = {temp_accuracy:.4f}.
+Untuk pengujian pada fold ke-{fold_iteration} dari algoritma {ALGORITHM_LABELS[algorithm_id]}, kelas '{classname}' memiliki nilai true positive (tp) = {tp:.2f}, true negative (tn) = {tn:.2f}, false positive (fp) = {fp:.2f}, false negative (fn) = {fn:.2f}. Nilai recall = tp / tp + fn = {temp_recall:.2f}, nilai precision = tp / tp + fp = {temp_precision:.2f}, accuracy = tp + tn / tp + tn + fp + fn = {temp_accuracy:.2f}.
 '''.strip()
             pass
 
