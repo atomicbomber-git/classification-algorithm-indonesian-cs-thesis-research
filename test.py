@@ -7,7 +7,50 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 import warnings
 from pycm import ConfusionMatrix
+import seaborn as sns
+import matplotlib.pyplot as plt
 
+def draw_conf_matrix(confusion_matrix: ConfusionMatrix, algo_name: str, fold_iter: int):
+    classification_classes = confusion_matrix.classes
+    confusion_matrix_df = DataFrame(confusion_matrix.to_array())
+    row_sums = confusion_matrix_df.sum(axis=1).to_list()
+
+    x_labels = ["{} ({})".format(label, row_sums[index])
+                for index, label in enumerate(classification_classes)]
+
+    temp_df = confusion_matrix_df.T
+
+    shape = temp_df.shape
+    annotations = [
+        [f'''{classification_classes[col]}\n{classification_classes[row]}\n{temp_df[row][col]}'''
+            for col in range(0, shape[0])]
+        for row in range(0, shape[1])
+    ]
+
+    confusion_matrix_heatmap = sns.heatmap(
+        confusion_matrix_df.T,
+        annot=annotations,
+        xticklabels=x_labels,
+        yticklabels=classification_classes,
+        cmap="Greens",
+        linewidths=0.1,
+        linecolor="black",
+        fmt='',
+        cbar=False,
+    )
+
+    fig = confusion_matrix_heatmap.get_figure()
+    fig.savefig(
+        "./test_result_data/{}-fold-{}.svg".format(algo_name, fold_iter),
+        bbox_inches='tight'
+    )
+    plt.clf()
+    pass
+
+
+sns.set(
+    font="Monospace",
+)
 
 warnings.filterwarnings("ignore")
 
@@ -80,6 +123,12 @@ for fold in range(0, N_FOLDS):
             predict_vector=predicted_data_test
         )
 
+        draw_conf_matrix(
+            report_confusion_matrix,
+            ALGORITHM_LABELS[algorithm_id],
+            fold_iteration,
+        )
+
         positions = report_confusion_matrix.position()
         precisions = []
         recalls = []
@@ -150,15 +199,15 @@ Rata-rata dari seluruh nilai accuracy adalah {(average(accuracies)):4f}.
 summary_df = DataFrame(test_results_summary)
 summary_df.to_excel("./test_summary.xlsx")
 
-# for algorithm_id, test_result in test_results_per_algorithm.items():
-#     data_frame = pandas.DataFrame(
-#         test_result
-#     )
+for algorithm_id, test_result in test_results_per_algorithm.items():
+    data_frame = pandas.DataFrame(
+        test_result
+    )
 
-#     mean = data_frame.mean()
+    mean = data_frame.mean()
 
-#     mean.to_csv(
-#         get_test_result_file_name(
-#             "Rata-Rata " + ALGORITHM_LABELS[algorithm_id]
-#         )
-#     )
+    mean.to_csv(
+        get_test_result_file_name(
+            "Rata-Rata " + ALGORITHM_LABELS[algorithm_id]
+        )
+    )
