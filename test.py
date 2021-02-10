@@ -9,6 +9,7 @@ import warnings
 from pycm import ConfusionMatrix
 import seaborn as sns
 import matplotlib.pyplot as plt
+from statistics import mean
 
 def draw_conf_matrix(confusion_matrix: ConfusionMatrix, algo_name: str, fold_iter: int):
     classification_classes = confusion_matrix.classes
@@ -163,15 +164,15 @@ for fold in range(0, N_FOLDS):
             accuracies.append(temp_accuracy)
 
             report_text += f'''
-Untuk pengujian pada fold ke-{fold_iteration} dari algoritma {ALGORITHM_LABELS[algorithm_id]}, kelas '{classname}' memiliki nilai true positive (tp) = {tp:.2f}, true negative (tn) = {tn:.2f}, false positive (fp) = {fp:.2f}, false negative (fn) = {fn:.2f}. Nilai recall = tp / tp + fn = {temp_recall:.2f}, nilai precision = tp / tp + fp = {temp_precision:.2f}, accuracy = tp + tn / tp + tn + fp + fn = {temp_accuracy:.2f}.
+Untuk pengujian pada fold ke-{fold_iteration} dari algoritma {ALGORITHM_LABELS[algorithm_id]}, kelas '{classname}' memiliki nilai true positive (tp) = {tp:d}, true negative (tn) = {tn:d}, false positive (fp) = {fp:d}, false negative (fn) = {fn:d}. Nilai recall = tp / tp + fn = {temp_recall:.4f}, nilai precision = tp / tp + fp = {temp_precision:.4f}, accuracy = tp + tn / tp + tn + fp + fn = {temp_accuracy:.4f}.
 '''.strip()
             pass
 
         report_text += f'''
-Rata-rata dari seluruh nilai precision adalah {precision:.2f}. \
-Rata-rata dari seluruh nilai recall adalah {recall:.2f}. \
-Rata-rata dari seluruh nilai f1-score adalah {f_score:.2f}. \
-Rata-rata dari seluruh nilai accuracy adalah {(average(accuracies)):.2f}.
+Rata-rata dari seluruh nilai precision adalah {precision:.4f}. \
+Rata-rata dari seluruh nilai recall adalah {recall:.4f}. \
+Rata-rata dari seluruh nilai f1-score adalah {f_score:.4f}. \
+Nilai accuracy terkecil dari seluruh nilai adalah {(min(accuracies)):.4f}.
 '''.strip()
 
         print(report_text, file=report_text_file, end="\n\n")
