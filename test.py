@@ -164,7 +164,7 @@ for fold in range(0, N_FOLDS):
             accuracies.append(temp_accuracy)
 
             report_text += f'''
-Untuk pengujian pada fold ke-{fold_iteration} dari algoritma {ALGORITHM_LABELS[algorithm_id]}, kelas '{classname}' memiliki nilai true positive (tp) = {tp:d}, true negative (tn) = {tn:d}, false positive (fp) = {fp:d}, false negative (fn) = {fn:d}. Nilai recall = tp / tp + fn = {temp_recall:.4f}, nilai precision = tp / tp + fp = {temp_precision:.4f}, accuracy = tp + tn / tp + tn + fp + fn = {temp_accuracy:.4f}.
+Untuk pengujian pada fold ke-{fold_iteration} dari algoritma {ALGORITHM_LABELS[algorithm_id]}, kelas '{classname}' memiliki nilai true positive (tp) = {tp:d}, true negative (tn) = {tn:d}, false positive (fp) = {fp:d}, false negative (fn) = {fn:d}. Nilai recall = tp / tp + fn = {temp_recall:.4f}, nilai precision = tp / tp + fp = {temp_precision:.4f}, f1-score = 2 × tp / * 2 × tp + fp + fn), accuracy = tp + tn / tp + tn + fp + fn = {temp_accuracy:.4f}.
 '''.strip()
             pass
 
